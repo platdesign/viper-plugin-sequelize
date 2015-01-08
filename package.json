@@ -1,0 +1,10 @@
+{
+  "name": "pd-project",
+  "description": "A new project by platdesign.de",
+  "version": "0.0.0",
+  "dependencies": {
+    "mysql": "^2.5.4",
+    "sequelize": "^2.0.0-rc6"
+  },
+  "repository": ""
+}
