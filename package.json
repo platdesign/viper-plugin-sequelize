@@ -1,7 +1,8 @@
 {
-  "name": "pd-project",
-  "description": "A new project by platdesign.de",
-  "version": "0.0.0",
+  "name": "viper-plugin-sequelize",
+  "description": "viper-plugin-sequelize",
+  "author":"plati <mail@platdesign.de>",
+  "version": "0.0.1",
   "dependencies": {
     "mysql": "^2.5.4",
     "sequelize": "^2.0.0-rc6"
