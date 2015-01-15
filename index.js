@@ -1,70 +1,56 @@
 'use strict';
 
-var Seq 	= require('sequelize');
-var path 	= require('path');
-var fs 		= require('fs');
-var util 	= require('util');
+var Sequelize 	= require('sequelize');
+var fs 			= require('fs');
+var path 		= require('path');
 
-
-var plugin = module.exports = function sequelize(viper) {
-
+module.exports = function() {
 	var that = this;
 
+	if( this._config.sequelize ) {
 
-	// walk through each config item
-	// attribute key of config will be name of connection
-	// and available in plugins interface
-	Object.keys(this.config).forEach(function(key) {
+		var config = this._config.sequelize;
 
-		// config args
-		var args = that.config[key];
+		// Walk config and create connection-provider for each item
+		Object.keys(config).forEach(function(serviceName) {
 
-		// create connection
-		var con = that.interface[key] = new Seq(args.database, args.username, args.password, args.options || {});
+			// config args
+			var args = config[serviceName];
 
-		// connect to database
-		con.authenticate().then(function() {
-			that.log(('Connection ('+key+') has been established successfully.').cyan);
-		}, function(err) {
-			that.logError(err);
+
+			// Create provider for connection
+			that.provider(serviceName, function() {
+				// create connection
+				var con = new Sequelize(args.database, args.username, args.password, args.options || {});
+
+				// connect to database
+				con.authenticate().then(function() {
+					console.log(('Connection ('+serviceName+') has been established successfully.').cyan);
+
+					// Import models from modelPath
+					var modelsPath = path.resolve( that.cwd(), args.modelsPath || './models');
+
+					if( fs.existsSync(modelsPath) ) {
+						fs.readdirSync(modelsPath).forEach(function(item) {
+							var itemPath = path.join(modelsPath, item);
+							con.import(itemPath);
+						});
+					}
+
+				}, function(err) {
+					// Output error
+					console.log(err);
+				});
+
+				// return service function which returns connection-object
+				return function() {
+					return con;
+				};
+			});
+
+
 		});
 
-
-		// Scan path/s for models and attach them to connection
-		if(args.modelsDir) {
-			if( util.isArray(args.modelsDir) ) {
-				args.modelsDir.forEach(function(dir) {
-					dir = path.resolve( viper.cwd(), dir );
-					scanDirForModels(con, dir);
-				});
-			} else {
-				var dir = path.resolve( viper.cwd(), args.modelsDir );
-				scanDirForModels(con, dir);
-			}
-		}
-
-	});
-
-};
-
-
-plugin.priority = 100;
-
-
-
-/**
- * require each item in directory as model definition to connection
- * @param  {db-connection} con [description]
- * @param  {string} dir [path to directory which contains model-files]
- */
-function scanDirForModels(con, dir) {
-
-	if(dir) {
-		if( fs.existsSync( dir ) ) {
-			fs.readdirSync(dir).forEach(function(item) {
-				con['import']( path.join( dir, item ));
-			});
-		}
 	}
 
-}
+};
