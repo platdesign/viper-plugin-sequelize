@@ -26,21 +26,22 @@ module.exports = function() {
 				// connect to database
 				con.authenticate().then(function() {
 					console.log(('Connection ('+serviceName+') has been established successfully.').cyan);
-
-					// Import models from modelPath
-					var modelsPath = path.resolve( that.cwd(), args.modelsPath || './models');
-
-					if( fs.existsSync(modelsPath) ) {
-						fs.readdirSync(modelsPath).forEach(function(item) {
-							var itemPath = path.join(modelsPath, item);
-							con.import(itemPath);
-						});
-					}
-
 				}, function(err) {
 					// Output error
 					console.log(err);
 				});
+
+
+				// Import models from modelPath
+				var modelsPath = path.resolve( that.cwd(), args.modelsPath || './models');
+
+				if( fs.existsSync(modelsPath) ) {
+					fs.readdirSync(modelsPath).forEach(function(item) {
+						var itemPath = path.join(modelsPath, item);
+						con.import(itemPath);
+					});
+				}
+
 
 				// return service function which returns connection-object
 				return function() {
