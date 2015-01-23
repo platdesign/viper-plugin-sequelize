@@ -28,7 +28,7 @@ module.exports = function() {
 					console.log(('Connection ('+serviceName+') has been established successfully.').cyan);
 				}, function(err) {
 					// Output error
-					console.log(err);
+					console.log(('Connection ('+serviceName+') failed. '+err.message).red);
 				});
 
 
