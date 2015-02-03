@@ -1,8 +1,8 @@
 {
   "name": "viper-plugin-sequelize",
   "description": "viper-plugin-sequelize",
-  "author":"plati <mail@platdesign.de>",
-  "version": "0.0.1",
+  "author": "plati <mail@platdesign.de>",
+  "version": "0.0.2",
   "dependencies": {
     "mysql": "^2.5.4",
     "sequelize": "^2.0.0-rc6"
