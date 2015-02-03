@@ -32,6 +32,15 @@ module.exports = function() {
 				});
 
 
+
+				// return service function which returns connection-object
+				return function() {
+					return con;
+				};
+			});
+
+			that.config([serviceName, function(con){
+
 				// Import models from modelPath
 				var modelsPath = path.resolve( that.cwd(), args.modelsPath || './models');
 
@@ -42,13 +51,22 @@ module.exports = function() {
 					});
 				}
 
+			}]);
 
-				// return service function which returns connection-object
-				return function() {
-					return con;
-				};
-			});
+			that.run([serviceName, function(con) {
+				// walk through all models and call associate if this method exists
+				Object.keys(con.models).forEach(function(modelName) {
+					var model = con.model(modelName);
+					if(model.associate) {
+						model.associate();
+					}
+				});
 
+				// after association sync the database
+				if(args.sync) {
+					con.sync(args.sync);
+				}
+			}]);
 
 		});
 
