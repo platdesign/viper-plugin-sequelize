@@ -24,8 +24,9 @@ module.exports = function() {
 				var con = new Sequelize(args.database, args.username, args.password, args.options || {});
 
 				// connect to database
-				con.authenticate().then(function() {
+				var conPromise = con.authenticate().then(function() {
 					console.log(('Connection ('+serviceName+') has been established successfully.').cyan);
+					return con;
 				}, function(err) {
 					// Output error
 					console.log(('Connection ('+serviceName+') failed. '+err.message).red);
@@ -35,11 +36,13 @@ module.exports = function() {
 
 				// return service function which returns connection-object
 				return function() {
-					return con;
+					return conPromise;
 				};
 			});
 
 			that.config([serviceName, function(con){
+
+				that.logVerbose('Import models (' + serviceName + ')');
 
 				// Import models from modelPath
 				var modelsPath = path.resolve( that.cwd(), args.modelsPath || './models');
@@ -53,7 +56,10 @@ module.exports = function() {
 
 			}]);
 
-			that.run([serviceName, function(con) {
+			that.config([serviceName, function(con) {
+
+				that.logVerbose('Associate models (' + serviceName + ')');
+
 				// walk through all models and call associate if this method exists
 				Object.keys(con.models).forEach(function(modelName) {
 					var model = con.model(modelName);
@@ -64,7 +70,10 @@ module.exports = function() {
 
 				// after association sync the database
 				if(args.sync) {
-					con.sync(args.sync);
+					that.logVerbose('Sync database ' + serviceName);
+					return con.sync(args.sync).then(function() {
+						that.logVerbose('Database synced (' + serviceName + ')');
+					});
 				}
 			}]);
 
