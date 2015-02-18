@@ -1,12 +1,56 @@
 'use strict';
 
 var Sequelize 	= require('sequelize');
-var fs 			= require('fs');
-var path 		= require('path');
+
 
 module.exports = function() {
-	var that = this;
 
+	this.config(function($configProvider, $dbProvider, $fs, $path, $cwd, $log) {
+
+		$configProvider.each('sequelize', function(key, item) {
+
+			if( item.database && item.username && item.password ) {
+
+				$dbProvider.connect(key, function() {
+					var con = new Sequelize(
+						item.database,
+						item.username,
+						item.password,
+						item.options || {}
+					);
+
+					// connect to database
+					return con.authenticate()
+						.then(function() {
+							return con;
+						});
+				});
+
+				if(item.modelsPath) {
+					$dbProvider.onConnected(key, function(con) {
+						var modelsPath = $path.resolve($cwd, item.modelsPath);
+
+						if( $fs.existsSync(modelsPath) ) {
+							$fs.readdirSync(modelsPath).forEach(function(modelFile) {
+								var modelFilePath = $path.join( modelsPath, modelFile);
+								con.import(modelFilePath);
+								$log.verbose('Sequelize: Loaded model from file '+modelFile.green);
+							});
+						}
+					});
+				}
+
+			} else {
+				throw new Error('Missing parameters for database connection: '+key);
+			}
+
+		});
+
+	});
+
+
+
+/*
 	if( this._config.sequelize ) {
 
 		var config = this._config.sequelize;
@@ -80,5 +124,5 @@ module.exports = function() {
 		});
 
 	}
-
+*/
 };
